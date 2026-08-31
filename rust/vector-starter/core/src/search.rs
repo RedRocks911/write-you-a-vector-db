@@ -69,7 +69,25 @@ impl TopK {
 }
 
 pub fn recall_at_k(_expected: &[Neighbor], _actual: &[Neighbor], _k: usize) -> f64 {
-    todo!("Chapter 2: compute top-k row-id overlap")
+    //todo!("Chapter 2: compute top-k row-id overlap")
+    // 1. 防止 k 为 0 导致除以 0 崩溃
+    if _k == 0 {
+        return 0.0;
+    }
+
+    // 2. 计算分子：在 expected 的前 _k 个中，有多少个在 actual 的前 _k 个中
+    let actual_top_k: std::collections::HashSet<_> = _actual.iter().take(_k).map(|n| n.row).collect();
+    
+    let hits = _expected
+        .iter()
+        .take(_k)
+        .filter(|neighbor| actual_top_k.contains(&neighbor.row))
+        .count();
+
+    // 3. 计算分母：标准 Recall@K 的分母应该是 k
+    // 注意：如果 expected 的实际长度小于 k，分母应该取 expected.len() 或 k，视具体业务定义而定。
+    // 这里采用最常见的严格定义：分母为 k
+    hits as f64 / _k as f64
 }
 
 #[derive(Debug, Clone)]
